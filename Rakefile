@@ -6,7 +6,9 @@ def codepen(github_url)
   index = Typhoeus.get(github_url).response_body
 
   %w(html js css).each do |format|
-    url = "https://raw.githubusercontent.com#{index.scan(%r{"(/[^"]+/[^"]+\.#{format})"}).first.first}".sub('/blob/', '/')
+    entries = index.scan(%r{"(/[^"]+/[^"]+\.#{format})"})
+    next if entries.empty?
+    url = "https://raw.githubusercontent.com#{entries.first.first}".sub('/blob/', '/')
     assets[format] = Typhoeus.get(url).response_body rescue nil
   end
 
@@ -14,7 +16,9 @@ def codepen(github_url)
 end
 
 task :default do
-  %w(https://github.com/raimo/js-examples/tree/master/cat).each do |url|
-    puts codepen(url)
+  remote = `git remote -v`.scan(%r{github.com[:a-z\-/]*}).first
+  puts 'Created these codepens for you:'
+  `git ls-tree master -d --name-only`.lines.each do |project|
+    puts codepen("https://#{remote.sub(':', '/')}/tree/master/#{project}")
   end
 end
