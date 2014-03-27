@@ -1,0 +1,26 @@
+<script src="//js.leapmotion.com/leap-0.4.1.js"></script>
+<script src="//js.leapmotion.com/leap-plugins-0.1.2.js"></script>
+<script>
+var Cat = function() {
+  var cat = this;
+  var img = document.createElement('img');
+  img.src = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/109794/cat_2.png';
+  img.style.position = 'absolute';
+  cat.setTransform = function(pos, rot, face) {
+    img.style.left = pos[0]-img.width/2 + 'px';
+    img.style.top = pos[1]-img.height/2 + 'px';
+    img.style.webkitTransform = img.style.MozTransform = img.style.msTransform =
+    img.style.OTransform = img.style.transform = 'rotate(' + -rot[0]*180/Math.PI + 'deg)';
+  };
+  img.onload = function () {
+    cat.setTransform([window.innerWidth/2,window.innerHeight/2], [0]);
+    document.body.appendChild(img);
+  }
+};
+var cats = { 0: new Cat() };
+Leap.loop(function(frame) {
+  frame.hands.forEach(function(h, i) {
+    (cats[i] || (cats[i] = new Cat())).setTransform(h.screenPosition(), h.palmNormal);
+  });
+}).use('screenPosition', {scale: 0.25});
+</script>
